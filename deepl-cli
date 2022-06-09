@@ -1,0 +1,82 @@
+#!/usr/bin/python
+import deepl
+import sys
+import argparse
+
+with open(".apikey.txt") as key_file:
+    auth_key = key_file.readline().rstrip()
+
+translator = deepl.Translator(auth_key)
+
+lang_shortcuts = {
+    "EN": "EN-US",
+    "en": "EN-US",
+    "English": "EN-US",
+    "english": "EN-US",
+    "eng": "EN-US",
+    "ang": "EN-US",
+    "PL": "PL",
+    "pl": "PL",
+    "pol": "PL",
+    "POL": "PL",
+}
+
+
+def translate():
+    language = lang_shortcuts[args.language]
+    result = translator.translate_text(text, target_lang=language)
+    print(result.text)
+
+
+def get_usage():
+    current_usage = translator.get_usage()
+    limit = 500000
+    actual = current_usage.character.count
+    percentage = actual / limit * 100
+    print("{0}  ({1:.2f}%)".format(current_usage.character, percentage))
+    exit(0)
+
+
+def translate_file():
+    language = lang_shortcuts[args.language]
+    text = file.read()
+    file.close()
+    result = translator.translate_text(text, target_lang=language)
+    print(result.text)
+
+
+parser = argparse.ArgumentParser(description="Translate the text using deepl api")
+
+parser.add_argument("text", help="text to translate", nargs="?", default=0, type=str)
+parser.add_argument(
+    "-u", "--usage", "-usage", help="Check the api usage", action="store_true"
+)
+parser.add_argument(
+    "-l",
+    "--language",
+    "-language",
+    help="specify the output language",
+    nargs="?",
+    default="en",
+    type=str,
+)
+parser.add_argument(
+    "-f",
+    "--file",
+    "-file",
+    help="input the file to translate",
+    type=argparse.FileType("r"),
+    default=sys.stdin,
+)
+args = parser.parse_args()
+text = args.text
+file = args.file
+
+if args.usage:
+    get_usage()
+elif args.text:
+    translate()
+elif args.file:
+    translate_file()
+
+translator.close()
